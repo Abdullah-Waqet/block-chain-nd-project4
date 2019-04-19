@@ -1,32 +1,55 @@
-const crypto = require("crypto-js/sha256");
+const SHA256 = require("crypto-js/sha256");
 const Block = require("./block");
+const dbHelper = require("./dbHelper");
 
 class BlockChain {
   constructor() {
-    this.chain = [];
-    this.addBlock("First block in the chain - Genesis block");
+    dbHelper.getBlocksCount().then(count => {
+      if (count == 0) {
+        this.addBlock("First block in the chain - Genesis block");
+      }
+    });
   }
 
-  getBlockHeight() {
-    return this.chain.length;
+  async getBlockHeight() {
+    let blockHeight = await dbHelper.getBlocksCount();
+    return blockHeight - 1;
   }
 
-  addBlock(data) {
+  async addBlock(data) {
+    // Block height
+    let lastHeight = await this.getBlockHeight();
     let block = new Block(data);
-    block.height = this.getBlockHeight();
-    block.hash = crypto(JSON.stringify(block)).toString();
+    block.height = lastHeight + 1;
+    // UTC timestamp
+    block.time = new Date()
+      .getTime()
+      .toString()
+      .slice(0, -3);
 
-    if (block.height > 0) {
-      block.previousBlockHash = this.chain[block.height - 1].hash;
+    if (lastHeight >= 0) {
+      // previous block hash
+      let previousBlock = await this.getBlock(lastHeight);
+
+      block.previousBlockHash = previousBlock.hash;
     }
 
-    this.chain.push(block);
+    // Block hash with SHA256 using newBlock and converting to a string
+    block.hash = SHA256(JSON.stringify(block)).toString();
 
-    return block;
+    // Adding block object to chain
+    try {
+      await dbHelper.addLevelDBData(block.height, block);
+      return block;
+    } catch {
+      throw new Error("Failed to add new block");
+    }
   }
 
-  getBlock(height) {
-    return this.chain[height];
+  async getBlock(height) {
+    console.log(height);
+    let rowObject = await dbHelper.getLevelDBData(height);
+    return JSON.parse(rowObject);
   }
 }
 

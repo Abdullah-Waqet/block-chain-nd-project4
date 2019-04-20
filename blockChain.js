@@ -47,7 +47,6 @@ class BlockChain {
   }
 
   async getBlock(height) {
-    console.log(height);
     let rowObject = await dbHelper.getLevelDBData(height);
     return JSON.parse(rowObject);
   }

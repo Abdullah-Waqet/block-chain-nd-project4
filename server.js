@@ -14,16 +14,16 @@ app.use(bodyParser.json());
 
 // add end-point to get block   GET /block/{block-height}
 app.get("/block/:blockHeight", async function(req, res) {
-  let block = await chain.getBlock(req.params.blockHeight);
+  let height = req.params.blockHeight;
   try {
-    if (!block) {
-      res.status(404).send({ error: `block Height ${height} not exists` });
-      return;
-    }
+    let block = await chain.getBlock(height);
     res.send(block);
   } catch (error) {
-    console.log(error);
-    res.status(500).send({ error: "Something went wrong" });
+    if (error.notFound) {
+      res.status(404).send({ error: `block Height ${height} not exists` });
+    } else {
+      res.status(500).send({ error: "Something went wrong" });
+    }
   }
 });
 // add end-point to add block   POST /block

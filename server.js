@@ -98,4 +98,49 @@ app.post("/requestValidation", async (req, res) => {
   res.status(200).send(newRequest);
 });
 
+app.post("/message-signature/validate", async (req, res) => {
+  result = messageValidator(req.body);
+  if (result.error) {
+    return res
+      .status(400)
+      .send({ error: `Bad Request. ${result.error.details[0].message}` });
+  }
+
+  let address = req.body.address;
+  let signature = req.body.signature;
+  let request = pool[address];
+
+  if (!request) {
+    return res.status(400).send({ error: "Invalid Request" });
+  }
+
+  let signedMessage = {
+    message: request.message,
+    address: address,
+    signature: signature
+  };
+
+  if (validateSignature(signedMessage) !== true) {
+    return res.status(400).send({ error: "Signature Validation Failed." });
+  }
+
+  let now = new Date()
+    .getTime()
+    .toString()
+    .slice(0, -3);
+  let timeElapsed = now - request.requestTimeStamp;
+  let newRequest = {
+    registerStar: true,
+    status: {
+      address: address,
+      requestTimeStamp: request.requestTimeStamp,
+      message: request.message,
+      validationWindow: 300 - timeElapsed,
+      messageSignature: true
+    }
+  };
+
+  return res.status(200).send(newRequest);
+});
+
 app.listen(8000, () => console.log(`Example app listening on port ${8000}!`));

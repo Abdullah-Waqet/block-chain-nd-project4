@@ -1,11 +1,18 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const chain = require("./blockChain")();
+const { validateSignature } = require("./signatureValidator");
+const { asciiToHexa, hexaToAscii } = require("./stringConverter");
+const {
+  requestValidator,
+  messageValidator,
+  blockValidator
+} = require("./bodyValidators");
 
-// initialize express app
 const app = express();
 
-// use body parser to to enable JSON body to be presented in request object
+const pool = {};
+
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -42,4 +49,53 @@ app.post("/block", async function(req, res) {
   }
 });
 // start express app
+
+app.post("/requestValidation", async (req, res) => {
+  result = requestValidator(req.body);
+
+  if (result.error) {
+    console.log(result.error);
+    response = {};
+    return res
+      .status(400)
+      .send({ error: `Bad Request. ${result.error.details[0].message}` });
+  }
+  let address = req.body.address;
+
+  let request = pool[address];
+
+  if (request) {
+    let now = new Date()
+      .getTime()
+      .toString()
+      .slice(0, -3);
+
+    let timeElapsed = now - request.timeStamp;
+    request.validationWindow = 300 - timeElapsed;
+    pool[address] = request;
+    return res.status(200).send(request);
+  }
+
+  let now = new Date()
+    .getTime()
+    .toString()
+    .slice(0, -3);
+  let newRequest = {
+    walletAddress: req.body.address,
+    requestTimeStamp: new Date()
+      .getTime()
+      .toString()
+      .slice(0, -3),
+    message: `${req.body.address}:${now}:starRegistry`,
+    validationWindow: 300
+  };
+  pool[address] = newRequest;
+
+  setTimeout(() => {
+    delete pool[address];
+  }, newRequest.validationWindow * 1000);
+
+  res.status(200).send(newRequest);
+});
+
 app.listen(8000, () => console.log(`Example app listening on port ${8000}!`));

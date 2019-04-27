@@ -28,6 +28,31 @@ function getLevelDBData(key) {
   return db.get(key);
 }
 
+async function getAllStarsbyAddress(walletAddress) {
+  let stars = [];
+  let star;
+
+  return new Promise((resolve, reject) => {
+    db.createReadStream()
+      .on("data", function(data) {
+        try {
+          star = JSON.parse(data.value.toString());
+        } catch (e) {
+          console.log("parse exception:  ", e.stack);
+        }
+        if (star.body.address === walletAddress) {
+          stars.push(star);
+        }
+      })
+      .on("error", function(error) {
+        reject(error);
+      })
+      .on("close", function() {
+        resolve(stars);
+      });
+  });
+}
+
 async function getStarsByHash(blockHash) {
   let stars = [];
   return new Promise((resolve, reject) => {
@@ -51,5 +76,6 @@ module.exports = {
   getLevelDBData: getLevelDBData,
   addLevelDBData: addLevelDBData,
   getBlocksCount: getBlocksCount,
+  getAllStarsbyAddress: getAllStarsbyAddress,
   getStarsByHash: getStarsByHash
 };

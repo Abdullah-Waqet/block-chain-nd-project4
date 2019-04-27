@@ -46,6 +46,14 @@ class BlockChain {
     }
   }
 
+  async getAllStarsbyAddress(adress) {
+    try {
+      return await dbHelper.getAllStarsbyAddress(adress);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   async getStarsByHash(blockHash) {
     try {
       return await dbHelper.getStarsByHash(blockHash);

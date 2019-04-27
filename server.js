@@ -35,26 +35,38 @@ app.get("/block/:blockHeight", async function(req, res) {
 });
 // add end-point to add block   POST /block
 app.post("/block", async function(req, res) {
-  let body = req.body.body;
+  result = blockValidator(req.body);
 
-  if (!body) {
-    res.status(400).send({ error: `Invalid block data` });
+  if (result.error) {
+    return res
+      .status(400)
+      .send({ error: `Bad Request. ${result.error.details[0].message}` });
   }
 
+  let address = req.body.address;
+
+  let request = pool[address];
+
+  if (!request) {
+    return res.status(400).send({ error: `Invalid block data` });
+  }
+
+
+  let hexStory = asciiToHexa(req.body.star.story);
+  req.body.star.story = hexStory;
+
   try {
-    let block = await chain.addBlock(body);
+    let block = await chain.addBlock(req.body);
     res.send(block);
   } catch (error) {
     res.status(500).send({ error: "Something went wrong" });
   }
 });
-// start express app
 
 app.post("/requestValidation", async (req, res) => {
   result = requestValidator(req.body);
 
   if (result.error) {
-    console.log(result.error);
     response = {};
     return res
       .status(400)

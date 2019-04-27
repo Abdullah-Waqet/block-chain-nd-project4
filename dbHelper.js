@@ -28,8 +28,28 @@ function getLevelDBData(key) {
   return db.get(key);
 }
 
+async function getStarsByHash(blockHash) {
+  let stars = [];
+  return new Promise((resolve, reject) => {
+    db.createReadStream()
+      .on("data", function(data) {
+        let star = JSON.parse(data.value);
+        if (star.hash === blockHash) {
+          stars.push(star);
+        }
+      })
+      .on("error", function(err) {
+        reject(errors);
+      })
+      .on("close", function() {
+        resolve(stars);
+      });
+  });
+}
+
 module.exports = {
   getLevelDBData: getLevelDBData,
   addLevelDBData: addLevelDBData,
-  getBlocksCount: getBlocksCount
+  getBlocksCount: getBlocksCount,
+  getStarsByHash: getStarsByHash
 };

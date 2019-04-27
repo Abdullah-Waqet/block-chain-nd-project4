@@ -46,6 +46,14 @@ class BlockChain {
     }
   }
 
+  async getStarsByHash(blockHash) {
+    try {
+      return await dbHelper.getStarsByHash(blockHash);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   async getBlock(height) {
     let rowObject = await dbHelper.getLevelDBData(height);
     return JSON.parse(rowObject);

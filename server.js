@@ -155,4 +155,29 @@ app.post("/message-signature/validate", async (req, res) => {
   return res.status(200).send(newRequest);
 });
 
+app.get("/stars/hash::blockHash", async (req, res) => {
+  const blockHash = req.params.blockHash;
+
+  let stars = await chain.getStarsByHash(blockHash);
+  if (!stars) {
+    return res
+      .status(500)
+      .send({ error: `Could not find stars wit hash: ${blockHash}` });
+  }
+
+  if (stars.length == 0) {
+    return res
+      .status(404)
+      .send({ error: `Could not find stars wit hash: ${blockHash}` });
+  }
+
+  let decodedStars = [];
+  for (let star of stars) {
+    star.body.star["storyDecoded"] = hexaToAscii(star.body.star.story);
+    decodedStars.push(star);
+  }
+
+  return res.status(200).send(decodedStars[0]);
+});
+
 app.listen(8000, () => console.log(`Example app listening on port ${8000}!`));

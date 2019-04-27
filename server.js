@@ -20,8 +20,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // add end-point to get block   GET /block/{block-height}
-app.get("/block/:blockHeight", async function(req, res) {
-  let height = req.params.blockHeight;
+app.get("/block/:height", async function(req, res) {
+  const height = parseInt(req.params.height);
   try {
     let block = await chain.getBlock(height);
     res.send(block);

@@ -21,7 +21,7 @@ module.exports = {
         .toString()
         .slice(0, -3);
 
-      let timeElapsed = now - request.timeStamp;
+      let timeElapsed = now - request.requestTimeStamp;
       request.validationWindow = 300 - timeElapsed;
       global.pool[address] = request;
       return res.status(200).send(request);

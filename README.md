@@ -5,26 +5,13 @@
 Clone this repo
 
 ```
-$ git clone https://github.com/Abdullah-Waqet/block-chain-nd-project3
+$ git clone https://github.com/Abdullah-Waqet/block-chain-nd-project4
 ```
 
 CD to block-chain-nd-project3 and then install all required packages using npm
 
 ```
 $ npm i
-```
-
-## API
-
-* `GET /block/{block-height}` which retrieves the block based on its height.
-
-* `POST /block` which takes the body of the request and use it to add a block
-
-Body of the *POST* request should be in JSON format, as follow
-```
-{
-    "body": "Testing block with test string data"
-}
 ```
 
 ## Frameworks

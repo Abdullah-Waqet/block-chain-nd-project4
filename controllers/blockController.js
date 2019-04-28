@@ -49,6 +49,7 @@ module.exports = {
 
     try {
       let block = await chain.addBlock(req.body);
+      delete global.pool[address];
       res.send(block);
     } catch (error) {
       res.status(500).send({ error: "Something went wrong" });
